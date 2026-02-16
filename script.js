@@ -16,6 +16,13 @@ let snake = [
     { x: 10, y: 11 },
     { x: 10, y: 12 }
 ];
+let enemySnake = [
+    { x: 5, y: 15 },
+    { x: 5, y: 16 },
+    { x: 5, y: 17 }
+];
+let enemyDx = 0;
+let enemyDy = -1;
 let food = { x: 5, y: 5 };
 let gameInterval;
 let gameRunning = false;
@@ -64,6 +71,13 @@ function startGame() {
         { x: 10, y: 11 },
         { x: 10, y: 12 }
     ];
+    enemySnake = [
+        { x: 5, y: 15 },
+        { x: 5, y: 16 },
+        { x: 5, y: 17 }
+    ];
+    enemyDx = 0;
+    enemyDy = -1;
     scoreElement.innerHTML = `Score: ${score}`;
     restartBtn.style.display = 'none';
     gameRunning = true;
@@ -74,6 +88,9 @@ function startGame() {
 
 function main() {
     changingDirection = false;
+
+    moveEnemySnake();
+
     if (didGameEnd()) {
         gameRunning = false;
         clearInterval(gameInterval);
@@ -86,6 +103,46 @@ function main() {
     drawFood();
     advanceSnake();
     drawSnake();
+    drawEnemySnake();
+}
+
+function moveEnemySnake() {
+    const head = enemySnake[0];
+    const possibleMoves = [
+        { dx: 0, dy: -1 },
+        { dx: 0, dy: 1 },
+        { dx: -1, dy: 0 },
+        { dx: 1, dy: 0 }
+    ];
+
+    const safeMoves = possibleMoves.filter(move => {
+        const nextX = head.x + move.dx;
+        const nextY = head.y + move.dy;
+        if (nextX < 0 || nextX >= tileCount || nextY < 0 || nextY >= tileCount) return false;
+        if (enemySnake.some(part => part.x === nextX && part.y === nextY)) return false;
+        if (snake.some(part => part.x === nextX && part.y === nextY)) return false;
+        if (move.dx === -enemyDx && move.dy === -enemyDy) return false;
+        return true;
+    });
+
+    if (safeMoves.length > 0) {
+        safeMoves.sort((a, b) => {
+            const distA = Math.abs(head.x + a.dx - food.x) + Math.abs(head.y + a.dy - food.y);
+            const distB = Math.abs(head.x + b.dx - food.x) + Math.abs(head.y + b.dy - food.y);
+            return distA - distB;
+        });
+        enemyDx = safeMoves[0].dx;
+        enemyDy = safeMoves[0].dy;
+    }
+
+    const newHead = { x: enemySnake[0].x + enemyDx, y: enemySnake[0].y + enemyDy };
+    enemySnake.unshift(newHead);
+
+    if (newHead.x === food.x && newHead.y === food.y) {
+        createFood();
+    } else {
+        enemySnake.pop();
+    }
 }
 
 function clearCanvas() {
@@ -96,6 +153,15 @@ function clearCanvas() {
 function drawSnake() {
     snake.forEach((part, index) => {
         ctx.fillStyle = index === 0 ? '#2ecc71' : '#27ae60';
+        ctx.strokeStyle = '#2c3e50';
+        ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+    });
+}
+
+function drawEnemySnake() {
+    enemySnake.forEach((part, index) => {
+        ctx.fillStyle = index === 0 ? '#f1c40f' : '#f39c12';
         ctx.strokeStyle = '#2c3e50';
         ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
         ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
@@ -117,9 +183,14 @@ function advanceSnake() {
 }
 
 function didGameEnd() {
+    // Player hits self
     for (let i = 4; i < snake.length; i++) {
         if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
     }
+
+    // Player hits enemy
+    if (enemySnake.some(part => part.x === snake[0].x && part.y === snake[0].y)) return true;
+
     const hitLeftWall = snake[0].x < 0;
     const hitRightWall = snake[0].x > tileCount - 1;
     const hitTopWall = snake[0].y < 0;
@@ -131,10 +202,12 @@ function createFood() {
     food.x = Math.floor(Math.random() * tileCount);
     food.y = Math.floor(Math.random() * tileCount);
 
-    // Make sure food doesn't spawn on snake
-    snake.forEach(function isFoodOnSnake(part) {
-        if (part.x === food.x && part.y === food.y) createFood();
-    });
+    // Make sure food doesn't spawn on player snake
+    let onSnake = snake.some(part => part.x === food.x && part.y === food.y);
+    // Make sure food doesn't spawn on enemy snake
+    let onEnemy = enemySnake.some(part => part.x === food.x && part.y === food.y);
+
+    if (onSnake || onEnemy) createFood();
 }
 
 function drawFood() {
