@@ -2,6 +2,10 @@ const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score-board');
 const restartBtn = document.getElementById('restart-btn');
+const selectionScreen = document.getElementById('selection-screen');
+const gameUI = document.getElementById('game-ui');
+const startBtn = document.getElementById('start-btn');
+const snakeOptions = document.querySelectorAll('.snake-option');
 
 const gridSize = 20;
 const tileCount = 20;
@@ -11,11 +15,7 @@ canvas.height = gridSize * tileCount;
 let score = 0;
 let dx = 0;
 let dy = 0;
-let snake = [
-    { x: 10, y: 10 },
-    { x: 10, y: 11 },
-    { x: 10, y: 12 }
-];
+let snake = [];
 let enemySnake = [
     { x: 5, y: 15 },
     { x: 5, y: 16 },
@@ -28,13 +28,62 @@ let gameInterval;
 let gameRunning = false;
 let changingDirection = false;
 
+const snakeTypes = {
+    balanced: {
+        colorHead: '#4ecca3',
+        colorBody: '#45b293',
+        speed: 150,
+        scoreMult: 1,
+        initialSize: 3
+    },
+    speed: {
+        colorHead: '#3498db',
+        colorBody: '#2980b9',
+        speed: 80,
+        scoreMult: 1,
+        initialSize: 3
+    },
+    score: {
+        colorHead: '#9b59b6',
+        colorBody: '#8e44ad',
+        speed: 180,
+        scoreMult: 2,
+        initialSize: 3
+    },
+    ghost: {
+        colorHead: '#ecf0f1',
+        colorBody: '#bdc3c7',
+        speed: 150,
+        scoreMult: 1,
+        initialSize: 1
+    }
+};
+
+let selectedType = 'balanced';
+
 // Event Listeners
 window.addEventListener('keydown', handleKeyDown);
 document.getElementById('up-btn').addEventListener('click', () => changeDirection(0, -1));
 document.getElementById('down-btn').addEventListener('click', () => changeDirection(0, 1));
 document.getElementById('left-btn').addEventListener('click', () => changeDirection(-1, 0));
 document.getElementById('right-btn').addEventListener('click', () => changeDirection(1, 0));
-restartBtn.addEventListener('click', startGame);
+restartBtn.addEventListener('click', () => {
+    gameUI.style.display = 'none';
+    selectionScreen.style.display = 'flex';
+});
+
+snakeOptions.forEach(option => {
+    option.addEventListener('click', () => {
+        snakeOptions.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedType = option.dataset.type;
+    });
+});
+
+startBtn.addEventListener('click', startGame);
+
+// Initialize selection
+document.querySelector('[data-type="balanced"]').classList.add('selected');
 
 function handleKeyDown(event) {
     const keyPressed = event.key;
@@ -63,14 +112,17 @@ function changeDirection(newDx, newDy) {
 }
 
 function startGame() {
+    const config = snakeTypes[selectedType];
+
     score = 0;
     dx = 0;
     dy = -1; // Start moving up
-    snake = [
-        { x: 10, y: 10 },
-        { x: 10, y: 11 },
-        { x: 10, y: 12 }
-    ];
+
+    snake = [];
+    for (let i = 0; i < config.initialSize; i++) {
+        snake.push({ x: 10, y: 10 + i });
+    }
+
     enemySnake = [
         { x: 5, y: 15 },
         { x: 5, y: 16 },
@@ -78,12 +130,17 @@ function startGame() {
     ];
     enemyDx = 0;
     enemyDy = -1;
+
     scoreElement.innerHTML = `Score: ${score}`;
+
+    selectionScreen.style.display = 'none';
+    gameUI.style.display = 'flex';
     restartBtn.style.display = 'none';
+
     gameRunning = true;
     createFood();
     if (gameInterval) clearInterval(gameInterval);
-    gameInterval = setInterval(main, 150);
+    gameInterval = setInterval(main, config.speed);
 }
 
 function main() {
@@ -214,9 +271,10 @@ function drawRoundedRect(x, y, size, radius, fillStyle, strokeStyle) {
 }
 
 function drawSnake() {
+    const config = snakeTypes[selectedType];
     snake.forEach((part, index) => {
         const isHead = index === 0;
-        const color = isHead ? '#4ecca3' : '#45b293';
+        const color = isHead ? config.colorHead : config.colorBody;
         drawRoundedRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, 5, color, '#1a1a2e');
 
         if (isHead) {
@@ -272,7 +330,8 @@ function advanceSnake() {
 
     const didEatFood = snake[0].x === food.x && snake[0].y === food.y;
     if (didEatFood) {
-        score += 10;
+        const config = snakeTypes[selectedType];
+        score += 10 * config.scoreMult;
         scoreElement.innerHTML = `Score: ${score}`;
         createFood();
     } else {
@@ -337,4 +396,4 @@ function drawFood() {
     ctx.fill();
 }
 
-startGame();
+// startGame(); - Removed to wait for selection

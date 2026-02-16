@@ -8,9 +8,36 @@
 </head>
 <body>
     <div id="game-container">
-        <div id="score-board">Score: 0</div>
-        <canvas id="game-canvas"></canvas>
-        <div id="controls">
+        <div id="selection-screen">
+            <h1>Choose Your Snake</h1>
+            <div class="snake-options">
+                <div class="snake-option" data-type="balanced">
+                    <div class="preview green"></div>
+                    <span class="name">Greeny</span>
+                    <span class="ability">Balanced</span>
+                </div>
+                <div class="snake-option" data-type="speed">
+                    <div class="preview blue"></div>
+                    <span class="name">Swift</span>
+                    <span class="ability">Fast Move</span>
+                </div>
+                <div class="snake-option" data-type="score">
+                    <div class="preview purple"></div>
+                    <span class="name">Midas</span>
+                    <span class="ability">2x Score</span>
+                </div>
+                <div class="snake-option" data-type="ghost">
+                    <div class="preview white"></div>
+                    <span class="name">Ghost</span>
+                    <span class="ability">Small Size</span>
+                </div>
+            </div>
+            <button id="start-btn">START GAME</button>
+        </div>
+        <div id="game-ui" style="display:none;">
+            <div id="score-board">Score: 0</div>
+            <canvas id="game-canvas"></canvas>
+            <div id="controls">
             <div class="row">
                 <button id="up-btn">↑</button>
             </div>
@@ -20,7 +47,8 @@
                 <button id="right-btn">→</button>
             </div>
         </div>
-        <button id="restart-btn" style="display:none;">Restart Game</button>
+            <button id="restart-btn" style="display:none;">Menu</button>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>

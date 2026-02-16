@@ -18,12 +18,102 @@ body {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 450px;
+    max-width: 500px;
     padding: 20px;
     box-sizing: border-box;
     background: #16213e;
     border-radius: 20px;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), 0 0 10px #e94560;
+}
+
+#selection-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#selection-screen h1 {
+    font-size: 16px;
+    margin-bottom: 30px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.snake-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.snake-option {
+    background: #0f3460;
+    border: 3px solid #e94560;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.snake-option:hover {
+    transform: scale(1.05);
+    background: #1a1a2e;
+}
+
+.snake-option.selected {
+    background: #e94560;
+    color: white;
+}
+
+.preview {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 2px solid white;
+}
+
+.preview.green { background: #4ecca3; }
+.preview.blue { background: #3498db; }
+.preview.purple { background: #9b59b6; }
+.preview.white { background: #ecf0f1; }
+
+.name {
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.ability {
+    font-size: 8px;
+    opacity: 0.8;
+}
+
+#start-btn {
+    padding: 15px 30px;
+    font-family: 'Press Start 2P', cursive;
+    background: #e94560;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px #950740;
+}
+
+#start-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px #950740;
+}
+
+#game-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 #score-board {
