@@ -91,6 +91,14 @@ function main() {
 
     moveEnemySnake();
 
+    if (didEnemyDie()) {
+        gameRunning = false;
+        clearInterval(gameInterval);
+        restartBtn.style.display = 'block';
+        alert(`You Win! The enemy snake crashed! Your score: ${score}`);
+        return;
+    }
+
     if (didGameEnd()) {
         gameRunning = false;
         clearInterval(gameInterval);
@@ -113,7 +121,7 @@ function moveEnemySnake() {
         { dx: 0, dy: 1 },
         { dx: -1, dy: 0 },
         { dx: 1, dy: 0 }
-    ];
+    ].filter(move => !(move.dx === -enemyDx && move.dy === -enemyDy)); // Prevent 180 turns
 
     const safeMoves = possibleMoves.filter(move => {
         const nextX = head.x + move.dx;
@@ -121,11 +129,13 @@ function moveEnemySnake() {
         if (nextX < 0 || nextX >= tileCount || nextY < 0 || nextY >= tileCount) return false;
         if (enemySnake.some(part => part.x === nextX && part.y === nextY)) return false;
         if (snake.some(part => part.x === nextX && part.y === nextY)) return false;
-        if (move.dx === -enemyDx && move.dy === -enemyDy) return false;
         return true;
     });
 
-    if (safeMoves.length > 0) {
+    const marginOfError = 0.08; // 8% chance to make a mistake
+    const makeMistake = Math.random() < marginOfError;
+
+    if (safeMoves.length > 0 && !makeMistake) {
         safeMoves.sort((a, b) => {
             const distA = Math.abs(head.x + a.dx - food.x) + Math.abs(head.y + a.dy - food.y);
             const distB = Math.abs(head.x + b.dx - food.x) + Math.abs(head.y + b.dy - food.y);
@@ -133,6 +143,11 @@ function moveEnemySnake() {
         });
         enemyDx = safeMoves[0].dx;
         enemyDy = safeMoves[0].dy;
+    } else if (possibleMoves.length > 0) {
+        // Pick a random move from possible moves (may include unsafe ones)
+        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+        enemyDx = randomMove.dx;
+        enemyDy = randomMove.dy;
     }
 
     const newHead = { x: enemySnake[0].x + enemyDx, y: enemySnake[0].y + enemyDy };
@@ -143,6 +158,22 @@ function moveEnemySnake() {
     } else {
         enemySnake.pop();
     }
+}
+
+function didEnemyDie() {
+    const head = enemySnake[0];
+    // Hit walls
+    if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) return true;
+
+    // Hit itself
+    for (let i = 1; i < enemySnake.length; i++) {
+        if (enemySnake[i].x === head.x && enemySnake[i].y === head.y) return true;
+    }
+
+    // Hit player
+    if (snake.some(part => part.x === head.x && part.y === head.y)) return true;
+
+    return false;
 }
 
 function clearCanvas() {
