@@ -177,26 +177,93 @@ function didEnemyDie() {
 }
 
 function clearCanvas() {
-    ctx.fillStyle = "#34495e";
+    // Background
+    ctx.fillStyle = "#0f3460";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid lines
+    ctx.strokeStyle = "rgba(233, 69, 96, 0.1)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= tileCount; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * gridSize, 0);
+        ctx.lineTo(i * gridSize, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * gridSize);
+        ctx.lineTo(canvas.width, i * gridSize);
+        ctx.stroke();
+    }
+}
+
+function drawRoundedRect(x, y, size, radius, fillStyle, strokeStyle) {
+    ctx.fillStyle = fillStyle;
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + size, y, x + size, y + size, radius);
+    ctx.arcTo(x + size, y + size, x, y + size, radius);
+    ctx.arcTo(x, y + size, x, y, radius);
+    ctx.arcTo(x, y, x + size, y, radius);
+    ctx.closePath();
+
+    ctx.fill();
+    ctx.stroke();
 }
 
 function drawSnake() {
     snake.forEach((part, index) => {
-        ctx.fillStyle = index === 0 ? '#2ecc71' : '#27ae60';
-        ctx.strokeStyle = '#2c3e50';
-        ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
-        ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        const isHead = index === 0;
+        const color = isHead ? '#4ecca3' : '#45b293';
+        drawRoundedRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, 5, color, '#1a1a2e');
+
+        if (isHead) {
+            drawEyes(part.x, part.y, dx, dy);
+        }
     });
 }
 
 function drawEnemySnake() {
     enemySnake.forEach((part, index) => {
-        ctx.fillStyle = index === 0 ? '#f1c40f' : '#f39c12';
-        ctx.strokeStyle = '#2c3e50';
-        ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
-        ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        const isHead = index === 0;
+        const color = isHead ? '#f1c40f' : '#d4ac0d';
+        drawRoundedRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, 5, color, '#1a1a2e');
+
+        if (isHead) {
+            drawEyes(part.x, part.y, enemyDx, enemyDy);
+        }
     });
+}
+
+function drawEyes(x, y, currentDx, currentDy) {
+    ctx.fillStyle = 'white';
+    const eyeSize = 4;
+    const padding = 5;
+
+    let eye1X, eye1Y, eye2X, eye2Y;
+
+    if (currentDx === 1) { // Right
+        eye1X = (x + 1) * gridSize - padding - eyeSize; eye1Y = y * gridSize + padding;
+        eye2X = (x + 1) * gridSize - padding - eyeSize; eye2Y = (y + 1) * gridSize - padding - eyeSize;
+    } else if (currentDx === -1) { // Left
+        eye1X = x * gridSize + padding; eye1Y = y * gridSize + padding;
+        eye2X = x * gridSize + padding; eye2Y = (y + 1) * gridSize - padding - eyeSize;
+    } else if (currentDy === 1) { // Down
+        eye1X = x * gridSize + padding; eye1Y = (y + 1) * gridSize - padding - eyeSize;
+        eye2X = (x + 1) * gridSize - padding - eyeSize; eye2Y = (y + 1) * gridSize - padding - eyeSize;
+    } else { // Up
+        eye1X = x * gridSize + padding; eye1Y = y * gridSize + padding;
+        eye2X = (x + 1) * gridSize - padding - eyeSize; eye2Y = y * gridSize + padding;
+    }
+
+    ctx.fillRect(eye1X, eye1Y, eyeSize, eyeSize);
+    ctx.fillRect(eye2X, eye2Y, eyeSize, eyeSize);
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(eye1X + 1, eye1Y + 1, eyeSize / 2, eyeSize / 2);
+    ctx.fillRect(eye2X + 1, eye2Y + 1, eyeSize / 2, eyeSize / 2);
 }
 
 function advanceSnake() {
@@ -242,10 +309,32 @@ function createFood() {
 }
 
 function drawFood() {
-    ctx.fillStyle = "#e74c3c";
-    ctx.strokeStyle = "#c0392b";
-    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
-    ctx.strokeRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    const x = food.x * gridSize + gridSize / 2;
+    const y = food.y * gridSize + gridSize / 2;
+    const radius = gridSize / 2 - 2;
+
+    // Apple body
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#e94560';
+    ctx.fill();
+    ctx.strokeStyle = '#950740';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Stem
+    ctx.beginPath();
+    ctx.moveTo(x, y - radius);
+    ctx.lineTo(x, y - radius - 4);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Shine
+    ctx.beginPath();
+    ctx.arc(x - 3, y - 3, 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fill();
 }
 
 startGame();
