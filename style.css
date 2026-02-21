@@ -138,10 +138,15 @@ body {
     border: 2px solid white;
 }
 
-.preview.green { background: #4ecca3; }
-.preview.blue { background: #3498db; }
-.preview.purple { background: #9b59b6; }
-.preview.white { background: #ecf0f1; }
+.preview {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.preview.green { background-image: url('https://img.icons8.com/color/48/snake.png'); }
+.preview.blue { background-image: url('https://img.icons8.com/color/48/anaconda.png'); }
+.preview.purple { background-image: url('https://img.icons8.com/color/48/dragon.png'); }
+.preview.white { background-image: url('https://img.icons8.com/color/48/ghost.png'); }
 
 .name {
     font-size: 12px;

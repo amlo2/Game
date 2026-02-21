@@ -57,6 +57,38 @@ const snakeTypes = {
 let selectedType = 'balanced';
 let selectedMode = 'normal';
 
+const images = {
+    apple: new Image(),
+    snakeHeadGreen: new Image(),
+    snakeHeadBlue: new Image(),
+    snakeHeadPurple: new Image(),
+    snakeHeadWhite: new Image(),
+    snakeBodyGreen: new Image(),
+    snakeBodyBlue: new Image(),
+    snakeBodyPurple: new Image(),
+    snakeBodyWhite: new Image(),
+    enemyHead: new Image(),
+    enemyBody: new Image(),
+    obstacle: new Image(),
+    portal1: new Image(),
+    portal2: new Image()
+};
+
+images.apple.src = 'https://img.icons8.com/color/48/apple.png';
+images.snakeHeadGreen.src = 'https://img.icons8.com/color/48/snake.png';
+images.snakeHeadBlue.src = 'https://img.icons8.com/color/48/anaconda.png';
+images.snakeHeadPurple.src = 'https://img.icons8.com/color/48/dragon.png';
+images.snakeHeadWhite.src = 'https://img.icons8.com/color/48/ghost.png';
+images.snakeBodyGreen.src = 'https://img.icons8.com/emoji/48/green-circle-emoji.png';
+images.snakeBodyBlue.src = 'https://img.icons8.com/emoji/48/blue-circle-emoji.png';
+images.snakeBodyPurple.src = 'https://img.icons8.com/emoji/48/purple-circle-emoji.png';
+images.snakeBodyWhite.src = 'https://img.icons8.com/emoji/48/white-circle-emoji.png';
+images.enemyHead.src = 'https://img.icons8.com/color/48/python.png';
+images.enemyBody.src = 'https://img.icons8.com/emoji/48/orange-circle-emoji.png';
+images.obstacle.src = 'https://img.icons8.com/color/48/brick.png';
+images.portal1.src = 'https://img.icons8.com/color/48/spiral.png';
+images.portal2.src = 'https://img.icons8.com/color/48/spiral.png';
+
 // Game state for modes
 let enemies = [];
 let foods = [];
@@ -221,27 +253,15 @@ function main() {
 
 function drawObstacles() {
     obstacles.forEach(obs => {
-        drawRoundedRect(obs.x * gridSize + 2, obs.y * gridSize + 2, gridSize - 4, 4, '#95a5a6', '#7f8c8d');
+        ctx.drawImage(images.obstacle, obs.x * gridSize, obs.y * gridSize, gridSize, gridSize);
     });
 }
 
 function drawPortals() {
     portals.forEach(p => {
-        drawPortal(p.p1.x, p.p1.y, '#9b59b6');
-        drawPortal(p.p2.x, p.p2.y, '#3498db');
+        ctx.drawImage(images.portal1, p.p1.x * gridSize, p.p1.y * gridSize, gridSize, gridSize);
+        ctx.drawImage(images.portal2, p.p2.x * gridSize, p.p2.y * gridSize, gridSize, gridSize);
     });
-}
-
-function drawPortal(x, y, color) {
-    ctx.beginPath();
-    ctx.arc((x + 0.5) * gridSize, (y + 0.5) * gridSize, gridSize / 2 - 2, 0, Math.PI * 2);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc((x + 0.5) * gridSize, (y + 0.5) * gridSize, gridSize / 4, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
 }
 
 function drawFoods() {
@@ -249,26 +269,7 @@ function drawFoods() {
 }
 
 function drawFoodAt(food) {
-    const x = food.x * gridSize + gridSize / 2;
-    const y = food.y * gridSize + gridSize / 2;
-    const radius = gridSize / 2 - 2;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#e94560';
-    ctx.fill();
-    ctx.strokeStyle = '#950740';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y - radius);
-    ctx.lineTo(x, y - radius - 4);
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(x - 3, y - 3, 2, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.fill();
+    ctx.drawImage(images.apple, food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 }
 
 function drawEnemies() {
@@ -388,11 +389,33 @@ function drawRoundedRect(x, y, size, radius, fillStyle, strokeStyle) {
 
 function drawSnake() {
     const config = snakeTypes[selectedType];
+    let bodyImage, headImage;
+    switch(selectedType) {
+        case 'speed':
+            bodyImage = images.snakeBodyBlue;
+            headImage = images.snakeHeadBlue;
+            break;
+        case 'score':
+            bodyImage = images.snakeBodyPurple;
+            headImage = images.snakeHeadPurple;
+            break;
+        case 'ghost':
+            bodyImage = images.snakeBodyWhite;
+            headImage = images.snakeHeadWhite;
+            break;
+        default:
+            bodyImage = images.snakeBodyGreen;
+            headImage = images.snakeHeadGreen;
+    }
+
     snake.forEach((part, index) => {
         const isHead = index === 0;
-        const color = isHead ? config.colorHead : config.colorBody;
-        drawRoundedRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, 5, color, '#1a1a2e');
-        if (isHead) drawEyes(part.x, part.y, dx, dy);
+        if (isHead) {
+            drawRotatedImage(headImage, part.x, part.y, dx, dy);
+        } else {
+            // Tint the body if possible, but for now just use the image
+            ctx.drawImage(bodyImage, part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        }
     });
 }
 
@@ -400,36 +423,29 @@ function drawEnemySnake(enemy) {
     if (enemy.dead) return;
     enemy.body.forEach((part, index) => {
         const isHead = index === 0;
-        const color = isHead ? '#f1c40f' : '#d4ac0d';
-        drawRoundedRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, 5, color, '#1a1a2e');
-        if (isHead) drawEyes(part.x, part.y, enemy.dx, enemy.dy);
+        if (isHead) {
+            drawRotatedImage(images.enemyHead, part.x, part.y, enemy.dx, enemy.dy);
+        } else {
+            ctx.drawImage(images.enemyBody, part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        }
     });
 }
 
-function drawEyes(x, y, currentDx, currentDy) {
-    ctx.fillStyle = 'white';
-    const eyeSize = 4;
-    const padding = 5;
-    let eye1X, eye1Y, eye2X, eye2Y;
-    if (currentDx === 1) {
-        eye1X = (x + 1) * gridSize - padding - eyeSize; eye1Y = y * gridSize + padding;
-        eye2X = (x + 1) * gridSize - padding - eyeSize; eye2Y = (y + 1) * gridSize - padding - eyeSize;
-    } else if (currentDx === -1) {
-        eye1X = x * gridSize + padding; eye1Y = y * gridSize + padding;
-        eye2X = x * gridSize + padding; eye2Y = (y + 1) * gridSize - padding - eyeSize;
-    } else if (currentDy === 1) {
-        eye1X = x * gridSize + padding; eye1Y = (y + 1) * gridSize - padding - eyeSize;
-        eye2X = (x + 1) * gridSize - padding - eyeSize; eye2Y = (y + 1) * gridSize - padding - eyeSize;
-    } else {
-        eye1X = x * gridSize + padding; eye1Y = y * gridSize + padding;
-        eye2X = (x + 1) * gridSize - padding - eyeSize; eye2Y = y * gridSize + padding;
-    }
-    ctx.fillRect(eye1X, eye1Y, eyeSize, eyeSize);
-    ctx.fillRect(eye2X, eye2Y, eyeSize, eyeSize);
-    ctx.fillStyle = 'black';
-    ctx.fillRect(eye1X + 1, eye1Y + 1, eyeSize / 2, eyeSize / 2);
-    ctx.fillRect(eye2X + 1, eye2Y + 1, eyeSize / 2, eyeSize / 2);
+function drawRotatedImage(image, x, y, currentDx, currentDy) {
+    ctx.save();
+    ctx.translate((x + 0.5) * gridSize, (y + 0.5) * gridSize);
+
+    let angle = 0;
+    if (currentDx === 1) angle = Math.PI / 2;
+    else if (currentDx === -1) angle = -Math.PI / 2;
+    else if (currentDy === 1) angle = Math.PI;
+    else angle = 0; // Up is 0
+
+    ctx.rotate(angle);
+    ctx.drawImage(image, -gridSize / 2, -gridSize / 2, gridSize, gridSize);
+    ctx.restore();
 }
+
 
 function advanceSnake() {
     let newHead = { x: snake[0].x + dx, y: snake[0].y + dy };
